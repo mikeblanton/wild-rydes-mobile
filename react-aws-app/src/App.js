@@ -1,12 +1,20 @@
 import React, { Component } from 'react';
 import { withAuthenticator } from 'aws-amplify-react'
-import { API } from 'aws-amplify'
+import { API, graphqlOperation } from 'aws-amplify'
 
 import logo from './logo.svg';
 import './App.css';
 
-let apiName = 'PetAPI';
-let path = '/pets';
+const ListPets = `
+  query {
+    listPets {
+      items {
+        id
+        name
+      }
+    }
+  }
+`
 
 class App extends Component {
   state = {
@@ -14,11 +22,9 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    const data = await API.get(apiName, path)
-    console.log('data: ', data)
-    this.setState({
-      pets: data.data
-    })
+    const pets = await API.graphql(graphqlOperation(ListPets))
+    console.log('pets: ', pets) // optional, if you would like to view the shape of the data
+    this.setState({ pets: pets.data.listPets.items })
   }
 
   render() {
@@ -33,7 +39,7 @@ class App extends Component {
         </p>
         {
           this.state.pets.map((pet, index) => (
-            <h2 key={index}>{pet}</h2>
+            <h2 key={index}>{pet.name}</h2>
           ))
         }
       </div>
